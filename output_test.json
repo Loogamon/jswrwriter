@@ -1,0 +1,27 @@
+[
+	{
+		"Key": "Hole",
+		"Hello": 123,
+		"There": 4294966840,
+		"Float": -45.67,
+		"Array": [
+			true,
+			false,
+			{
+				"Herald of Nothing": "Idiot",
+				"Is a Turtle": "Now"
+			},
+			null
+		],
+		"Object": {
+			"Herald of Nothing": "Idiot"
+		},
+		"Meta": "Knight",
+		"Special": "I'm \"into\" slasher\\flicks!"
+	},
+	{
+		"Herald of Nothing": "Idiot",
+		"Is a Turtle": "Now",
+		"Rawly Written": null
+	}
+]
