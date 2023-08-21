@@ -86,8 +86,8 @@ By standard use, you shouldn't likely need to make use of either functions.
 * `JSWR_ERROR_NOKEY`: Key expected.
 * `JSWR_ERROR_UNCLOSEDKEY`: Unclosed key detected.
 * `JSWR_ERROR_INVALBRACKET`: Invalid brackets.
-* `JSWR_ERROR_TOKENOUTSIDE`: Detected writing outside of object or array. Can be disabled by jswrwriter_set_leniency().
-* `JSWR_ERROR_UNEXPECTEDEXTRA`: Unexpected extra data. Can be disabled by jswrwriter_set_leniency().
+* `JSWR_ERROR_TOKENOUTSIDE`: Detected writing outside of object or array. Can be disabled by **jswrwriter_set_leniency()**.
+* `JSWR_ERROR_UNEXPECTEDEXTRA`: Unexpected extra data. Can be disabled by **jswrwriter_set_leniency()**.
 * `JSWR_ERROR_WRITEFAIL`: File writing failure.
 
 Constants for loading errors, to be used with **jsmnreader_parse()** or **jsmnreader_filewrite()**.
