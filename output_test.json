@@ -23,5 +23,15 @@
 		"Herald of Nothing": "Idiot",
 		"Is a Turtle": "Now",
 		"Rawly Written": null
+	},
+	{
+		"New v1.1 Stuff": "Over Here",
+		"Boolean A": true, "Boolean B": false, 
+		"Boolean C": true,
+		"Temp Compact": [
+			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 
+			20,
+			0, 1, 2, 3, 4, 5, 6, 7, 8, 9
+		]
 	}
 ]

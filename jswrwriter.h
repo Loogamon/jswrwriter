@@ -22,7 +22,7 @@
 * SOFTWARE.
 */
 
-//JSMR Writer v1.0
+//JSMR Writer v1.1
 
 #define JSWR_DEBUGPRINT 0
 
@@ -53,6 +53,7 @@ typedef enum jswrtype {
     JSWR_TOKEN_UINT,
     JSWR_TOKEN_FLOAT,
     JSWR_TOKEN_UFLOAT,
+	JSWR_TOKEN_BOOL, //NEW!
     JSWR_TOKEN_TRUE,
     JSWR_TOKEN_FALSE,
     JSWR_TOKEN_RAW,
@@ -87,12 +88,14 @@ typedef struct jswrtok
     unsigned int str_size;
     int num_int;
     float num_float;
+	unsigned int beauty_break;
 } jswrtok_t;
 
 typedef struct jswr_writer
 {
     unsigned int wr_size;
     int wr_level;
+	int wr_addbreak;
     jswrtok_t * wr_token;
     char * wr_str;
     unsigned int wr_strsize;
@@ -137,6 +140,11 @@ JSWR_API void jswrwriter_gen_uint(const unsigned int input_int, jswrwriter_obj *
 JSWR_API void jswrwriter_gen_float(const float input_float, jswrwriter_obj * jswr);
 
 /**
+* (JSWR Writer): Generates a bool value (true/false). [NEW!]
+*/
+JSWR_API void jswrwriter_gen_bool(const unsigned int input_int, jswrwriter_obj * jswr);
+
+/**
 * (JSWR Writer): Generates a true value.
 */
 JSWR_API void jswrwriter_gen_true(jswrwriter_obj * jswr);
@@ -172,6 +180,11 @@ JSWR_API void jswrwriter_gen_array_open(jswrwriter_obj * jswr);
 JSWR_API void jswrwriter_gen_array_close(jswrwriter_obj * jswr);
 
 /**
+* (JSWR Writer): Breaks Beautify Mode for the next token [NEW!]
+*/
+JSWR_API void jswrwriter_gen_beautify_break(jswrwriter_obj * jswr);
+
+/**
 * (JSWR Writer): Generates a string. Key strings are generated through this function.
 */
 JSWR_API void jswrwriter_gen_string(const char * input_str, const unsigned int input_str_size, jswrwriter_obj * jswr);
@@ -202,6 +215,7 @@ JSWR_API void jswrwriter_init(jswrwriter_obj * jswr)
 {
     jswr->wr_size=0;
     jswr->wr_level=0;
+	jswr->wr_addbreak=0;
     jswr->wr_token=(jswrtok_t *) malloc(0);
     jswr->wr_str=(char *) malloc(0);
     jswr->wr_strsize=0;
@@ -250,6 +264,10 @@ static void jswrwriter_gen_x(const int type, jswrwriter_obj * jswr)
     jswr->wr_token[jswr->wr_size-1].str_size=0;
     jswr->wr_token[jswr->wr_size-1].num_int=0;
     jswr->wr_token[jswr->wr_size-1].num_float=0;
+	jswr->wr_token[jswr->wr_size-1].beauty_break=0;
+	if (jswr->wr_addbreak)
+		jswr->wr_token[jswr->wr_size-1].beauty_break=1;
+	jswr->wr_addbreak=0;
 }
 
 JSWR_API void jswrwriter_set_style(const unsigned char style, jswrwriter_obj * jswr)
@@ -281,6 +299,13 @@ JSWR_API void jswrwriter_gen_float(const float input_float, jswrwriter_obj * jsw
 {
     jswrwriter_gen_x(JSWR_TOKEN_FLOAT, jswr);
     jswr->wr_token[jswr->wr_size-1].num_float=input_float;
+    return;
+}
+
+JSWR_API void jswrwriter_gen_bool(const int input_int, jswrwriter_obj * jswr) //NEW!
+{
+    jswrwriter_gen_x(JSWR_TOKEN_BOOL, jswr);
+    jswr->wr_token[jswr->wr_size-1].num_int=input_int;
     return;
 }
 
@@ -346,6 +371,19 @@ JSWR_API void jswrwriter_gen_raw(const char * input_str, const unsigned int inpu
     return;
 }
 
+JSWR_API void jswrwriter_gen_beautify_break(jswrwriter_obj * jswr) //NEW!
+{
+    jswr->wr_addbreak=1;
+    return;
+}
+
+static char * jswrwriter_boolcheck(int num) //NEW!
+{
+	if (num)
+		return "TRUE";
+	return "FALSE";
+}
+
 JSWR_API void jswrwriter_debugprint(jswrwriter_obj * jswr)
 {
     unsigned int i;
@@ -353,21 +391,25 @@ JSWR_API void jswrwriter_debugprint(jswrwriter_obj * jswr)
     {
         switch(jswr->wr_token[i].tok_type)
         {
-            case JSWR_TOKEN_STRING: printf("%d STRING: %s\n",i,jswr->wr_token[i].str); break;
-            case JSWR_TOKEN_RAW: printf("%d RAW: %s\n",i,jswr->wr_token[i].str); break;
-            case JSWR_TOKEN_INT: printf("%d INT: %d\n",i,jswr->wr_token[i].num_int); break;
-            case JSWR_TOKEN_UINT: printf("%d UINT: %u\n",i,jswr->wr_token[i].num_int); break;
-            case JSWR_TOKEN_FLOAT: printf("%d FLOAT: %g\n",i,jswr->wr_token[i].num_float); break;
-            case JSWR_TOKEN_UFLOAT: printf("%d UFLOAT: %g\n",i,jswr->wr_token[i].num_float); break;
-            case JSWR_TOKEN_TRUE: printf("%d TRUE\n",i); break;
-            case JSWR_TOKEN_FALSE: printf("%d FALSE\n",i); break;
-            case JSWR_TOKEN_NULL: printf("%d NULL\n",i); break;
-            case JSWR_TOKEN_OBJOPEN: printf("%d (OBJ OPEN)\n",i); break;
-            case JSWR_TOKEN_OBJCLOSE: printf("%d (OBJ CLOSE)\n",i); break;
-            case JSWR_TOKEN_ARRAYOPEN: printf("%d (ARRAY OPEN)\n",i); break;
-            case JSWR_TOKEN_ARRAYCLOSE: printf("%d (ARRAY CLOSE)\n",i); break;
-            default: printf("%d ???\n",i); break;
+            case JSWR_TOKEN_STRING: printf("%d STRING: %s",i,jswr->wr_token[i].str); break;
+            case JSWR_TOKEN_RAW: printf("%d RAW: %s",i,jswr->wr_token[i].str); break;
+            case JSWR_TOKEN_INT: printf("%d INT: %d",i,jswr->wr_token[i].num_int); break;
+            case JSWR_TOKEN_UINT: printf("%d UINT: %u",i,jswr->wr_token[i].num_int); break;
+            case JSWR_TOKEN_FLOAT: printf("%d FLOAT: %g",i,jswr->wr_token[i].num_float); break;
+            case JSWR_TOKEN_UFLOAT: printf("%d UFLOAT: %g",i,jswr->wr_token[i].num_float); break;
+			case JSWR_TOKEN_BOOL: printf("%d BOOL: %s",i,jswrwriter_boolcheck(jswr->wr_token[i].num_int)); break; //NEW! Might have it display true/false temporarily.
+            case JSWR_TOKEN_TRUE: printf("%d TRUE",i); break;
+            case JSWR_TOKEN_FALSE: printf("%d FALSE",i); break;
+            case JSWR_TOKEN_NULL: printf("%d NULL",i); break;
+            case JSWR_TOKEN_OBJOPEN: printf("%d (OBJ OPEN)",i); break;
+            case JSWR_TOKEN_OBJCLOSE: printf("%d (OBJ CLOSE)",i); break;
+            case JSWR_TOKEN_ARRAYOPEN: printf("%d (ARRAY OPEN)",i); break;
+            case JSWR_TOKEN_ARRAYCLOSE: printf("%d (ARRAY CLOSE)",i); break;
+            default: printf("%d ???",i); break;
         }
+		if (jswr->wr_token[i].beauty_break)
+			printf(" [+BREAK]");
+		printf("\n");
     }
 	return;
 }
@@ -381,6 +423,7 @@ static int jswrwriter_istokenitem(int token_type, int allow_open)
             case JSWR_TOKEN_UINT: return 1; break;
             case JSWR_TOKEN_FLOAT: return 1; break;
             case JSWR_TOKEN_UFLOAT: return 1; break;
+			case JSWR_TOKEN_BOOL: return 1; break; //NEW!
             case JSWR_TOKEN_TRUE: return 1; break;
             case JSWR_TOKEN_FALSE: return 1; break;
             case JSWR_TOKEN_NULL: return 1; break;
@@ -404,8 +447,12 @@ static int jswrwriter_istokenitem(int token_type, int allow_open)
 static void jswrwriter_writetab(unsigned int pos, int level, jswrwriter_obj * jswr)
 {
     int i;
+	unsigned int temp_beauty;
+	temp_beauty=1;
+	if (jswr->wr_token[pos].beauty_break)
+		temp_beauty=0;
     i=0;
-    if (jswr->setting_uselines)
+    if (jswr->setting_uselines && temp_beauty)
     {
     if (pos>0)
         jswrwriter_puts("\n", jswr);
@@ -452,7 +499,14 @@ static void jswrwriter_writetoken(unsigned int i, jswrwriter_obj * jswr)
                 jswrwriter_putc('"',jswr);
                 break;
 
-            case JSWR_TOKEN_TRUE:
+            case JSWR_TOKEN_BOOL: //NEW!
+				if (jswr->wr_token[i].num_int)
+					jswrwriter_puts("true",jswr);
+				else
+					jswrwriter_puts("false",jswr);
+                break;
+
+			case JSWR_TOKEN_TRUE:
                 jswrwriter_puts("true",jswr);
                 break;
 
@@ -519,7 +573,7 @@ static void jswrwriter_writetoken(unsigned int i, jswrwriter_obj * jswr)
 
 JSWR_API int jswrwriter_parse(jswrwriter_obj * jswr)
 {
-    unsigned int i,is_error,is_array,prev_key,is_end;
+    unsigned int i,is_error,is_array,prev_key,is_end,temp_beauty;
     int level,error_type,prev_type;
     unsigned int * level_types;
     level_types = (unsigned int *) malloc(0 * sizeof(unsigned int));
@@ -531,8 +585,20 @@ JSWR_API int jswrwriter_parse(jswrwriter_obj * jswr)
     error_type=JSWR_SUCCESS;
     prev_type=JSWR_TOKEN_NONE;
     is_end=0;
+	temp_beauty=1;
     while (i<jswr->wr_size && !is_error)
     {
+		temp_beauty=1;
+		if (i+1<jswr->wr_size)
+		{
+			if (jswr->wr_token[i+1].beauty_break==1)
+				temp_beauty=0;
+		}
+		if (jswr->wr_token[i].beauty_break==1)
+			temp_beauty=0;
+		if (jswr->setting_uselines==0)
+			temp_beauty=0;
+		
         switch (jswr->wr_token[i].tok_type)
         {
             default:
@@ -555,9 +621,9 @@ JSWR_API int jswrwriter_parse(jswrwriter_obj * jswr)
                         {
                             if (jswrwriter_istokenitem(jswr->wr_token[i+1].tok_type,1))
                             {
-                            if (JSWR_DEBUGPRINT) printf(",");
-                            jswrwriter_putc(',',jswr);
-                            if (!jswr->setting_uselines) jswrwriter_putc(' ',jswr);
+								if (JSWR_DEBUGPRINT) printf(",");
+								jswrwriter_putc(',',jswr);
+								if (temp_beauty==0) jswrwriter_putc(' ',jswr);
                             }
                         }
                         if (JSWR_DEBUGPRINT) printf("\n");
@@ -583,7 +649,7 @@ JSWR_API int jswrwriter_parse(jswrwriter_obj * jswr)
                         {
                             if (JSWR_DEBUGPRINT) printf(",");
                             jswrwriter_putc(',',jswr);
-                            if (!jswr->setting_uselines) jswrwriter_putc(' ',jswr);
+                            if (temp_beauty==0) jswrwriter_putc(' ',jswr);
                         }
                     }
                     if (JSWR_DEBUGPRINT) printf("\n");
@@ -613,7 +679,7 @@ JSWR_API int jswrwriter_parse(jswrwriter_obj * jswr)
                         {
                         if (JSWR_DEBUGPRINT) printf(",");
                         jswrwriter_putc(',',jswr);
-                        if (!jswr->setting_uselines) jswrwriter_putc(' ',jswr);
+                        if (temp_beauty==0) jswrwriter_putc(' ',jswr);
                         }
                     }
                     if (JSWR_DEBUGPRINT) printf("\n");
@@ -640,7 +706,7 @@ JSWR_API int jswrwriter_parse(jswrwriter_obj * jswr)
                     {
                     if (JSWR_DEBUGPRINT) printf(",");
                     jswrwriter_putc(',',jswr);
-                    if (!jswr->setting_uselines) jswrwriter_putc(' ',jswr);
+                    if (temp_beauty==0) jswrwriter_putc(' ',jswr);
                     }
                 }
                 if (JSWR_DEBUGPRINT) printf("\n");
@@ -716,7 +782,7 @@ JSWR_API int jswrwriter_parse(jswrwriter_obj * jswr)
                         {
                             if (JSWR_DEBUGPRINT) printf(",");
                             jswrwriter_putc(',',jswr);
-                            if (!jswr->setting_uselines) jswrwriter_putc(' ',jswr);
+                            if (temp_beauty==0) jswrwriter_putc(' ',jswr);
                         }
                     }
                     if (JSWR_DEBUGPRINT) printf("\n");
@@ -729,7 +795,7 @@ JSWR_API int jswrwriter_parse(jswrwriter_obj * jswr)
                         {
                             if (JSWR_DEBUGPRINT) printf(",");
                             jswrwriter_putc(',',jswr);
-                            if (!jswr->setting_uselines) jswrwriter_putc(' ',jswr);
+                            if (temp_beauty==0) jswrwriter_putc(' ',jswr);
                         }
                     }
                     if (JSWR_DEBUGPRINT) printf("\n");
@@ -750,7 +816,7 @@ JSWR_API int jswrwriter_parse(jswrwriter_obj * jswr)
                     {
                         if (JSWR_DEBUGPRINT) printf(",");
                         jswrwriter_putc(',',jswr);
-                        if (!jswr->setting_uselines) jswrwriter_putc(' ',jswr);
+                        if (temp_beauty==0) jswrwriter_putc(' ',jswr);
                     }
                 }
                 }
@@ -838,7 +904,7 @@ JSWR_API int jswrwriter_parse(jswrwriter_obj * jswr)
                         {
                             if (JSWR_DEBUGPRINT) printf(",");
                             jswrwriter_putc(',',jswr);
-                            if (!jswr->setting_uselines) jswrwriter_putc(' ',jswr);
+                            if (temp_beauty==0) jswrwriter_putc(' ',jswr);
                         }
                     }
                     if (JSWR_DEBUGPRINT) printf("\n");
@@ -851,7 +917,7 @@ JSWR_API int jswrwriter_parse(jswrwriter_obj * jswr)
                         {
                             if (JSWR_DEBUGPRINT) printf(",");
                             jswrwriter_putc(',',jswr);
-                            if (!jswr->setting_uselines) jswrwriter_putc(' ',jswr);
+                            if (temp_beauty==0) jswrwriter_putc(' ',jswr);
                         }
                     }
                     if (JSWR_DEBUGPRINT) printf("\n");
@@ -872,7 +938,7 @@ JSWR_API int jswrwriter_parse(jswrwriter_obj * jswr)
                     {
                         if (JSWR_DEBUGPRINT) printf(",");
                         jswrwriter_putc(',',jswr);
-                        if (!jswr->setting_uselines) jswrwriter_putc(' ',jswr);
+                        if (temp_beauty==0) jswrwriter_putc(' ',jswr);
                     }
                 }
                 }

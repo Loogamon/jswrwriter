@@ -63,6 +63,7 @@ By standard use, you shouldn't likely need to make use of either functions.
 * `jswrwriter_gen_int(input_int, &jswr)`: Generates an int.
 * `jswrwriter_gen_uint(input_int, &jswr)`: Generates an unsigned int.
 * `jswrwriter_gen_float(input_float, &jswr)`: Generates a float.
+* `jswrwriter_gen_bool(input_int, &jswr)`: Generates a boolean output (true/false).
 * `jswrwriter_gen_true(&jswr)`: Generates a true value.
 * `jswrwriter_gen_false(&jswr)`: Generates a false value.
 * `jswrwriter_gen_null(&jswr)`: Generates a null value.
@@ -71,6 +72,7 @@ By standard use, you shouldn't likely need to make use of either functions.
 * `jswrwriter_gen_array_open(&jswr)`: Generates an array opening. `[`
 * `jswrwriter_gen_array_close(&jswr)`: Generates an array closing. `]`
 * `jswrwriter_gen_raw(input_str, input_str_size, &jswr)`: Generates a "raw" string.
+* `jswrwriter_gen_beautify_break(&jswr)`: Prevents a line break for the next token.
 
 
 ### Debug Output

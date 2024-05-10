@@ -31,9 +31,11 @@ int main()
 {
     jswrwriter_obj myjswr;
     int error;
+	int i;
 
     printf("JSWR!\n");
     jswrwriter_init(&myjswr);
+	jswrwriter_set_style(1,&myjswr);
     jswrwriter_gen_array_open(&myjswr);
     jswrwriter_gen_object_open(&myjswr);
 
@@ -84,8 +86,39 @@ int main()
     jswrwriter_gen_string("Rawly Written", 32, &myjswr);
     jswrwriter_gen_raw("null", 32, &myjswr);
     jswrwriter_gen_object_close(&myjswr);
+	
+	//NEW v1.1 stuff
+	jswrwriter_gen_object_open(&myjswr);
+	jswrwriter_gen_string("New v1.1 Stuff", 32, &myjswr);
+    jswrwriter_gen_string("Over Here", 32, &myjswr);
+	jswrwriter_gen_string("Boolean A", 32, &myjswr);
+	jswrwriter_gen_bool(12, &myjswr);
+	jswrwriter_gen_beautify_break(&myjswr);
+	jswrwriter_gen_string("Boolean B", 32, &myjswr);
+	jswrwriter_gen_beautify_break(&myjswr); //Demonstrating there's no bug.
+	jswrwriter_gen_bool(0, &myjswr);
+	jswrwriter_gen_string("Boolean C", 32, &myjswr);
+	jswrwriter_gen_bool(-12, &myjswr);
+	jswrwriter_gen_string("Temp Compact", 32, &myjswr);
+	jswrwriter_gen_array_open(&myjswr);
+	for (i=0;i<10;i++)
+	{
+		if (i>0)
+		jswrwriter_gen_beautify_break(&myjswr);
+		jswrwriter_gen_int(i, &myjswr);
+	}
+	//jswrwriter_gen_beautify_break(&myjswr);
+	jswrwriter_gen_int(i*2, &myjswr);
+	for (i=0;i<10;i++)
+	{
+		if (i>0)
+			jswrwriter_gen_beautify_break(&myjswr);
+		jswrwriter_gen_int(i, &myjswr);
+	}
+	//jswrwriter_gen_beautify_break(&myjswr);
+	jswrwriter_gen_array_close(&myjswr);
+	jswrwriter_gen_object_close(&myjswr);
     jswrwriter_gen_array_close(&myjswr);
-
     jswrwriter_debugprint(&myjswr);
     error=jswrwriter_parse(&myjswr);
     printf("---\n%s\n---\n",myjswr.wr_str);
